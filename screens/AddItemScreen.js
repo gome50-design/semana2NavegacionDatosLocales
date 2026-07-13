@@ -1,4 +1,4 @@
-// AddItemScreen.js - Formulario para agregar un nuevo item
+// AddItemScreen.js - Pantalla con formulario para agregar un nuevo item
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
@@ -6,20 +6,17 @@ export default function AddItemScreen({ navigation, onAddItem }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
 
-  // Función que se ejecuta al presionar Guardar
+  // Función que se ejecuta cuando se presiona el botón Guardar
   function handleSave() {
-    // Validación: no guardar si están vacíos
     if (title.trim() === '' || description.trim() === '') {
       return;
     }
 
-    // Llamamos a la función del padre para guardar el item
     onAddItem({
       title: title,
       description: description,
     });
 
-    // Regresamos a la pantalla de Items
     navigation.navigate('Items');
   }
 
@@ -35,7 +32,7 @@ export default function AddItemScreen({ navigation, onAddItem }) {
 
       <Text style={styles.label}>Descripción</Text>
       <TextInput
-        style={[styles.input, styles.textArea]}
+        style={[styles.input, styles.textArea]} // 👈 corregido: usar array para combinar estilos
         placeholder="Describe el elemento"
         value={description}
         onChangeText={setDescription}
