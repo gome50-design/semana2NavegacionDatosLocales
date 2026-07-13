@@ -1,23 +1,50 @@
-// AddItemScreen.js - Pantalla con formulario para agregar un nuevo item
-import { useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+// AddItemScreen.js - Crear y Editar items
+import { useState, useEffect } from "react";
+import { Pressable, StyleSheet, Text, TextInput, View, Alert } from "react-native";
+import { createItem, updateItem } from "../services/api";
 
-export default function AddItemScreen({ navigation, onAddItem }) {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
+export default function AddItemScreen({ navigation, route }) {
+  const itemToEdit = route.params?.item; // Si viene un item, estamos editando
 
-  // Función que se ejecuta cuando se presiona el botón Guardar
-  function handleSave() {
+  const [title, setTitle] = useState(itemToEdit ? itemToEdit.title : '');
+  const [description, setDescription] = useState(itemToEdit ? itemToEdit.description : '');
+  const [loading, setLoading] = useState(false);
+
+  const isEditing = !!itemToEdit;
+
+  async function handleSave() {
     if (title.trim() === '' || description.trim() === '') {
+      Alert.alert("Error", "Por favor completa todos los campos");
       return;
     }
 
-    onAddItem({
-      title: title,
-      description: description,
-    });
+    try {
+      setLoading(true);
 
-    navigation.navigate('Items');
+      if (isEditing) {
+        // Modo edición
+        await updateItem(itemToEdit.id, {
+          title: title.trim(),
+          description: description.trim(),
+        });
+        Alert.alert("Éxito", "Item actualizado correctamente");
+      } else {
+        // Modo creación
+        await createItem({
+          title: title.trim(),
+          description: description.trim(),
+        });
+        Alert.alert("Éxito", "Item creado correctamente");
+      }
+
+      navigation.goBack();
+
+    } catch (error) {
+      Alert.alert("Error", isEditing ? "No se pudo actualizar el item" : "No se pudo crear el item");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -32,15 +59,21 @@ export default function AddItemScreen({ navigation, onAddItem }) {
 
       <Text style={styles.label}>Descripción</Text>
       <TextInput
-        style={[styles.input, styles.textArea]} // 👈 corregido: usar array para combinar estilos
+        style={[styles.input, styles.textArea]}
         placeholder="Describe el elemento"
         value={description}
         onChangeText={setDescription}
         multiline
       />
 
-      <Pressable style={styles.button} onPress={handleSave}>
-        <Text style={styles.buttonText}>Guardar</Text>
+      <Pressable 
+        style={[styles.button, loading && { opacity: 0.6 }]} 
+        onPress={handleSave}
+        disabled={loading}
+      >
+        <Text style={styles.buttonText}>
+          {loading ? "Guardando..." : isEditing ? "Actualizar" : "Guardar"}
+        </Text>
       </Pressable>
     </View>
   );

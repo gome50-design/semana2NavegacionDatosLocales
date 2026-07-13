@@ -1,6 +1,7 @@
-// ItemsScreen.js - Pantalla que muestra el listado de items desde la API
-import { useState, useEffect } from 'react';
+// ItemsScreen.js - Listado que se actualiza automáticamente desde la API
+import { useState, useCallback } from 'react';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { useFocusEffect } from '@react-navigation/native';
 import { getItems } from '../services/api';
 
 export default function ItemsScreen({ navigation }) {
@@ -8,15 +9,18 @@ export default function ItemsScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    loadItems();
-  }, []);
+  // Se ejecuta cada vez que la pantalla vuelve a estar visible
+  useFocusEffect(
+    useCallback(() => {
+      loadItems();
+    }, [])
+  );
 
   const loadItems = async () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await getItems();  
+      const data = await getItems();
       setItems(data);
     } catch (err) {
       setError(err.message);
